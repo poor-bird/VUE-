@@ -61,7 +61,7 @@
         // clone 一个 DOM 元素
         let generateNode = tempNode.cloneNode( true )
 
-        compiler(generateNode, data)
+        compiler([generateNode], data)
         // 4.
         //替换 DOM 元素
         root.parentNode.replaceChild(generateNode, root)

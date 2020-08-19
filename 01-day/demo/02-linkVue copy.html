@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <script src="../../node_modules/vue/dist/vue.js"></script> -->
+</head>
+<body>
+    <!-- 写模版 -->
+    <div id="root">
+        <p>{{name}}</p>
+        <p>{{message}}</p>
+    </div>
+    <script>
+        let tempNode = document.querySelector("#root")
+        let data = {
+            name : "张三",
+            message: "我这是在测试数据"
+        }
+        function compiler(tempNode, data){
+            let reg = /\{\{(.+?)\}\}/g
+            let childNodes = tempNode.childNodes;
+            console.log(childNodes.length);
+            for (let i = 0; i < childNodes.length; i++) {
+                let type = childNodes[i].nodeType;
+                if(type === 3){
+                    let txt = childNodes[i].nodeValue
+                    txt = txt.replace(reg, (v1, v2)=>{
+                        let value = data[v2.trim()]
+                        return value
+                    })
+                    childNodes[i].nodeValue = txt
+                }else if(type === 1){
+                    compiler(childNodes[i], data)
+                }
+            }
+        }
+        // compiler(tempNode, data)
+        function JGVue( options ){
+            this._data = options.data
+            this._el = options.el
+            this.$el = this._templateNode = document.querySelector( this._el)
+            this._parent = this._templateNode.parentNode
+            this.render()
+        }
+        JGVue.prototype.render = function(){
+            this.compiler()
+        }
+        // 获取新的dom
+        JGVue.prototype.compiler = function(){
+            let realHTMlDOM = this._templateNode.cloneNode( true )
+            compiler(realHTMlDOM, this._data)
+            this.updata(realHTMlDOM)
+        }
+        JGVue.prototype.updata = function(templateNode){
+            this._parent.replaceChild(templateNode, document.querySelector("#root"))
+        }
+        let app = new JGVue({
+            el: "#root",
+            data: {
+                name: "李四",
+                message: "文本进行整合"
+            }
+        })
+    </script>
+</body>
+</html>
