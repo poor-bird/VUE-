@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <script src="../../node_modules/vue/dist/vue.js"></script> -->
+</head>
+<body>
+    <!-- 写模版 -->
+    <div id="root">
+        <p>{{name}}</p>
+        <p>{{message}}</p>
+    </div>
+    <script>
+        let rkuohao = /\{\{(.+?)\}\}/g;
+        function compiler(template, data){
+            //取出子元素
+            let childNodes = template.childNodes; 
+            for (let i = 0; i < childNodes.length; i++) {
+                let type = childNodes[i].nodeType; //节点类型： 1: 元素， 3: 文本节点
+                if(type === 3){
+                    //文本节点，可以判断里面是否有{{}}插值
+                    let txt = childNodes[i].nodeValue //该属性只有文本节点才有意义
+                    // 有没有双花括号
+                    txt = txt.replace(rkuohao, (v1, v2)=>{  //replace 使用正则匹配一次，函数就会调用一次
+                        // 函数的 第0个 参数，表示匹配到的内容
+                        // 函数的 第n个 参数，表示正则中的第n组
+                        let key = v2.trim(); //写在花括号里面的东西
+                        console.log(key);
+                        let value = data[key]
+                        
+                        // 将 {{xxxx}} 用value替换
+                        return value
+                    })
+                    console.log('txt的值', txt);
+                    // 注意：txt 现在和 DOM 元素是没有关系的
+                    childNodes[i].nodeValue = txt
+                }else if(type === 1){
+                    //元素，考虑它有没有子元素，是否需要将其子元素进行 判断是否要插值
+                    compiler(childNodes[i], data)
+                }
+            }
+        }
+        
+        function JGVue( options ){
+            // 习惯：内部数据使用下划线开头，只读数据使用 $ 开头
+            this._data = options.data
+            this._el = options.el
+            //准备工作（ 准备模版 ）
+            this.$el = this._templateDOM = document.querySelector( this._el )
+            this._parent = this._templateDOM.parentNode;
+            // 渲染工作
+            this.render()
+        }
+        // 将模版，即 数据，html加到页面中
+        JGVue.prototype.render = function(){
+            this.compiler()
+        }
+        // 编译 将模版 与 数据 结合，得到真正的DOM元素
+        JGVue.prototype.compiler = function(){
+            let realHTMLDOM = this._templateDOM.cloneNode( true ) // 用 模版 拷贝 得到 一个标准的 DOM
+            compiler(realHTMLDOM, this._data)
+            this.update( realHTMLDOM );
+        }
+        // 将DOM元素放到页面中
+        JGVue.prototype.update = function( real ){
+            this._parent.replaceChild(real, document.querySelector("#root"))
+        }
+        let app = new JGVue({
+            el: "#root",
+            data: {
+                name: "张三",
+                message: "我是过来打酱油的"
+            }
+        })
+
+        // 要解决一个问题：
+        // 使用 xxx.yyy.zzz 可以来访问一个对象
+        // 就是用字符串路径来访问对象的成员
+        let o = {
+            a: {
+                b: {
+                    c: {
+                        d: "测试"
+                    }
+                }
+            }
+        }
+        function getValueByPath(obj, path){
+            let paths = path.split(".")
+            let res = obj
+            let prop;
+            while( prop = paths.shift() ){
+                res = res[ prop ]
+            }
+            return res
+        }
+        let res = getValueByPath(o, "a.b.c.d")
+        console.log(res);
+    </script>
+</body>
+</html>

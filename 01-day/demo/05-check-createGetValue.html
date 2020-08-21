@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function createGetValueByPath( path ){
+            let paths = path.split(".")
+            return function getValuePath(obj){
+                let res = obj
+                let prop;
+                while(prop = paths.shift()){
+                    res = res[prop]
+                }
+                return res
+            }
+        }
+        let o = {
+            a: {
+                b: {
+                    c: {
+                        d: "测试"
+                    }
+                }
+            }
+        }
+        let getValue = createGetValueByPath("a.b.c")
+        let res = getValue( o )
+        console.log(res);
+    </script>
+</body>
+</html>
